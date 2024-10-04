@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"log"
+	"momssi-apig-app/api/controller"
+	"momssi-apig-app/api/route"
 	"momssi-apig-app/config"
 	"momssi-apig-app/internal/database"
 	"momssi-apig-app/internal/logger"
@@ -49,4 +51,15 @@ func (a *App) Start(wg *sync.WaitGroup) {
 
 func (a *App) Stop(ctx context.Context) {
 	a.srv.Shutdown(ctx)
+}
+
+func (a *App) setupRouter() {
+
+	memberController := controller.NewMemberController()
+
+	router := route.RouterConfig{
+		Engine:           a.srv.GetEngine(),
+		MemberController: memberController,
+	}
+	router.Setup()
 }
