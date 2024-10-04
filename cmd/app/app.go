@@ -7,6 +7,7 @@ import (
 	"momssi-apig-app/api/route"
 	"momssi-apig-app/config"
 	"momssi-apig-app/internal/database"
+	"momssi-apig-app/internal/domain/member"
 	"momssi-apig-app/internal/logger"
 	"momssi-apig-app/internal/server"
 	"sync"
@@ -55,11 +56,13 @@ func (a *App) Stop(ctx context.Context) {
 
 func (a *App) setupRouter() {
 
-	memberController := controller.NewMemberController()
+	mr := member.NewMemberRepository(a.db)
+	ms := member.NewMemberService(mr)
+	mc := controller.NewMemberController(ms)
 
 	router := route.RouterConfig{
 		Engine:           a.srv.GetEngine(),
-		MemberController: memberController,
+		MemberController: mc,
 	}
 	router.Setup()
 }
