@@ -1,9 +1,12 @@
 package member
 
 import (
+	"github.com/golang-jwt/jwt/v5"
 	"momssi-apig-app/internal/domain/member/types"
 	"time"
 )
+
+var JWTKey = []byte("your_secret_key")
 
 type SignUpRequest struct {
 	Username string `json:"username"`
@@ -14,6 +17,20 @@ type SignUpRequest struct {
 
 type SignUpRes struct {
 	MemberId int64 `json:"member_id"`
+}
+
+type LoginReq struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type LoginRes struct {
+	AccessToken string `json:"access_token"`
+}
+
+type Claims struct {
+	Username string `json:"username"`
+	jwt.RegisteredClaims
 }
 
 type UpdateRequest struct {

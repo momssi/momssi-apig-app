@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log/slog"
+	"momssi-apig-app/api/middleware"
 	"momssi-apig-app/config"
 	"net/http"
 	"sync"
@@ -20,6 +21,7 @@ type Gin struct {
 func NewGinServer(cfg config.Server) *Gin {
 
 	router := getGinEngine(cfg.Mode)
+	router.Use(middleware.AuthMiddleware())
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.Port),

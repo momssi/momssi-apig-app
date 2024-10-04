@@ -4,6 +4,7 @@ go 1.22.0
 
 require (
 	github.com/gin-gonic/gin v1.10.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )

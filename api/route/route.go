@@ -17,4 +17,5 @@ func (r *RouterConfig) Setup() {
 func (r *RouterConfig) SetupMember() {
 	member := r.Engine.Group("/member")
 	member.POST("/sign-up", r.MemberController.SignUp)
+	member.POST("/login", r.MemberController.Login)
 }
