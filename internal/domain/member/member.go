@@ -1,6 +1,7 @@
 package member
 
 import (
+	"golang.org/x/crypto/bcrypt"
 	"momssi-apig-app/internal/domain/member/types"
 	"time"
 )
@@ -52,6 +53,19 @@ func NewMemberInfo(req SignUpRequest) *MemberInfo {
 	}
 }
 
+func (m *MemberInfo) hashPassword() error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(m.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	m.Password = string(hashedPassword)
+	return nil
+}
+
+func (m *MemberInfo) checkPassword(hashedPassword, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+
 type Service interface {
 	SignUp(request SignUpRequest) (int64, error)
 	Login(id, password string) MemberInfo
@@ -64,5 +78,5 @@ type Service interface {
 
 type Repository interface {
 	isExistByUsername(username string) (bool, error)
-	SignUp(data *MemberInfo) (int64, error)
+	Save(data *MemberInfo) (int64, error)
 }

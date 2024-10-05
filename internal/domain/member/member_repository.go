@@ -32,14 +32,14 @@ func (mr *MemberRepository) isExistByUsername(username string) (bool, error) {
 	return count > 0, nil
 }
 
-func (mr *MemberRepository) SignUp(data *MemberInfo) (int64, error) {
+func (mr *MemberRepository) Save(data *MemberInfo) (int64, error) {
 	qs := query([]string{
 		"INSERT INTO",
-		"momssi.member(`username`, `password`, `nickname`, `admin_yn`, `status`)",
+		"momssi.member(`email`, `password`, `name`, `admin_yn`, `status`)",
 		"VALUES (?, ?, ?, ?, ?)",
 	})
 
-	if err := mr.db.ExecQuery(qs, data.Username, data.Password, data.Nickname, data.AdminYn, data.Status); err != nil {
+	if err := mr.db.ExecQuery(qs, data.Email, data.Password, data.Name, data.AdminYn, data.Status); err != nil {
 		return 0, err
 	}
 
@@ -47,10 +47,10 @@ func (mr *MemberRepository) SignUp(data *MemberInfo) (int64, error) {
 		"SELECT `id`",
 		"FROM momssi.member m",
 		"WHERE 1=1",
-		"AND m.username = ?",
+		"AND m.email = ?",
 	})
 
-	result, err := mr.db.ExecSingleResultQuery(mqs, data.Username)
+	result, err := mr.db.ExecSingleResultQuery(mqs, data.Email)
 	if err != nil {
 		return 0, err
 	}

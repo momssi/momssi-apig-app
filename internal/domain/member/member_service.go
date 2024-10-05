@@ -22,7 +22,12 @@ func (us *MemberService) SignUp(req SignUpRequest) (int64, error) {
 	}
 
 	memberInfo := NewMemberInfo(req)
-	return us.repo.SignUp(memberInfo)
+
+	if err := memberInfo.hashPassword(); err != nil {
+		return 0, fmt.Errorf("failed encoding password, err : %w", err)
+	}
+
+	return us.repo.Save(memberInfo)
 }
 
 func (us *MemberService) isDuplicatedId(email string) error {
