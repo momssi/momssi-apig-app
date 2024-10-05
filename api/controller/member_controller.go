@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"momssi-apig-app/api/form"
 	"momssi-apig-app/internal/domain/member"
 	"net/http"
@@ -53,8 +52,8 @@ func (mc *MemberController) SignUp(c *gin.Context) {
 
 	memberId, err := mc.service.SignUp(req)
 	if err != nil {
-		if errors.Is(err, form.GetCustomErr(form.ErrDuplicatedUsername)) {
-			mc.failResponse(c, http.StatusBadRequest, form.ErrDuplicatedUsername, fmt.Errorf("duplicated username : %w", err))
+		if errors.Is(err, form.GetCustomErr(form.ErrDuplicatedEmail)) {
+			mc.failResponse(c, http.StatusBadRequest, form.ErrDuplicatedEmail, fmt.Errorf("duplicated email : %w", err))
 		} else {
 			mc.failResponse(c, http.StatusInternalServerError, form.ErrInternalServerError, fmt.Errorf("sign up occur err : %w", err))
 		}
@@ -81,19 +80,20 @@ func (mc *MemberController) Login(c *gin.Context) {
 		return
 	}
 
-	expirationTime := time.Now().Add(5 * time.Minute)
-	claims := &member.Claims{
-		Username: req.Username,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-		},
+	accessToken, err := member.GenerateJWT(req.Email, time.Minute*5)
+	if err != nil {
+		mc.failResponse(c, http.StatusUnauthorized, form.ErrInvalidToken, form.GetCustomErr(form.ErrMissingToken))
+		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(member.JWTKey)
+	refreshToken, err := member.GenerateJWT(req.Email, time.Hour*12)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
-		mc.failResponse(c, http.StatusInternalServerError, form.ErrFailGenerateJWTKey, form.GetCustomErr(form.ErrFailGenerateJWTKey))
+		mc.failResponse(c, http.StatusUnauthorized, form.ErrInvalidToken, form.GetCustomErr(form.ErrMissingToken))
+		return
+	}
+
+	if err := mc.service.LoginSuccess(req.Email, refreshToken); err != nil {
+		mc.failResponse(c, http.StatusInternalServerError, form.ErrInternalServerError, form.GetCustomErr(form.ErrInternalServerError))
 		return
 	}
 
@@ -101,7 +101,8 @@ func (mc *MemberController) Login(c *gin.Context) {
 		ErrorCode: 0,
 		Message:   "success",
 		Result: member.LoginRes{
-			AccessToken: tokenString,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
 		},
 	})
 

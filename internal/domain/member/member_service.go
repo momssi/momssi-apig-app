@@ -17,7 +17,7 @@ func NewMemberService(repo Repository) Service {
 
 func (us *MemberService) SignUp(req SignUpRequest) (int64, error) {
 
-	if err := us.isDuplicatedId(req.Username); err != nil {
+	if err := us.isDuplicatedId(req.Email); err != nil {
 		return 0, err
 	}
 
@@ -25,19 +25,24 @@ func (us *MemberService) SignUp(req SignUpRequest) (int64, error) {
 	return us.repo.SignUp(memberInfo)
 }
 
-func (us *MemberService) isDuplicatedId(username string) error {
-	isExist, err := us.repo.isExistByUsername(username)
+func (us *MemberService) isDuplicatedId(email string) error {
+	isExist, err := us.repo.isExistByUsername(email)
 	if err != nil {
-		return fmt.Errorf("failed get username, err : %w", err)
+		return fmt.Errorf("failed get email, err : %w", err)
 	}
 	if isExist {
-		return form.GetCustomErr(form.ErrDuplicatedUsername)
+		return form.GetCustomErr(form.ErrDuplicatedEmail)
 	}
 
 	return nil
 }
 
-func (us *MemberService) login(id, password string) MemberInfo {
+func (us *MemberService) Login(id, password string) MemberInfo {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (us *MemberService) LoginSuccess(email, refreshToken string) error {
 	//TODO implement me
 	panic("implement me")
 }

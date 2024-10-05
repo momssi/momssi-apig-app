@@ -1,17 +1,14 @@
 package member
 
 import (
-	"github.com/golang-jwt/jwt/v5"
 	"momssi-apig-app/internal/domain/member/types"
 	"time"
 )
 
-var JWTKey = []byte("your_secret_key")
-
 type SignUpRequest struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
-	Nickname string `json:"nickname"`
+	Name     string `json:"name"`
 	AdminYn  string `json:"admin_yn"`
 }
 
@@ -20,17 +17,13 @@ type SignUpRes struct {
 }
 
 type LoginReq struct {
-	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
 type LoginRes struct {
-	AccessToken string `json:"access_token"`
-}
-
-type Claims struct {
-	Username string `json:"username"`
-	jwt.RegisteredClaims
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type UpdateRequest struct {
@@ -38,9 +31,9 @@ type UpdateRequest struct {
 
 type MemberInfo struct {
 	ID        int64              `json:"id"`
-	Username  string             `json:"username"`
+	Email     string             `json:"email"`
 	Password  string             `json:"password"`
-	Nickname  string             `json:"nickname"`
+	Name      string             `json:"name"`
 	AdminYn   string             `json:"admin_yn"`
 	Status    types.MemberStatus `json:"status"`
 	CreatedAt time.Time          `json:"created_at"`
@@ -49,9 +42,9 @@ type MemberInfo struct {
 
 func NewMemberInfo(req SignUpRequest) *MemberInfo {
 	return &MemberInfo{
-		Username:  req.Username,
+		Email:     req.Email,
 		Password:  req.Password,
-		Nickname:  req.Nickname,
+		Name:      req.Name,
 		AdminYn:   req.AdminYn,
 		Status:    types.ACTIVE,
 		CreatedAt: time.Now(),
@@ -61,7 +54,8 @@ func NewMemberInfo(req SignUpRequest) *MemberInfo {
 
 type Service interface {
 	SignUp(request SignUpRequest) (int64, error)
-	login(id, password string) MemberInfo
+	Login(id, password string) MemberInfo
+	LoginSuccess(email, refreshToken string) error
 	isDuplicatedId(username string) error
 	getUserInfo(username string) MemberInfo
 	updateUserInfo(request *UpdateRequest) int64
