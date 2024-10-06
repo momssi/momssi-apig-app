@@ -31,8 +31,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 토큰이 유효한 경우, 다음 핸들러로 진행
-		c.Set("email", claims.Email)
 		c.Next()
 	}
 }

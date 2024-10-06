@@ -31,14 +31,19 @@ type UpdateRequest struct {
 }
 
 type MemberInfo struct {
-	ID        int64              `json:"id"`
-	Email     string             `json:"email"`
-	Password  string             `json:"password"`
-	Name      string             `json:"name"`
-	AdminYn   string             `json:"admin_yn"`
-	Status    types.MemberStatus `json:"status"`
-	CreatedAt time.Time          `json:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at"`
+	ID             int64              `json:"id"`
+	Email          string             `json:"email"`
+	Password       string             `json:"password"`
+	Name           string             `json:"name"`
+	AdminYn        string             `json:"admin_yn"`
+	DeleteYn       string             `json:"delete_yn"`
+	LastLoginIP    string             `json:"last_login_ip"`
+	RefreshToken   string             `json:"refresh_token"`
+	LoginFailCount int                `json:"login_fail_count"`
+	Status         types.MemberStatus `json:"status"`
+	LastLoginAt    time.Time          `json:"last_login_at"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
 }
 
 func NewMemberInfo(req SignUpRequest) *MemberInfo {
@@ -62,14 +67,14 @@ func (m *MemberInfo) hashPassword() error {
 	return nil
 }
 
-func (m *MemberInfo) checkPassword(hashedPassword, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+func (m *MemberInfo) checkPassword(inputPw string) error {
+	return bcrypt.CompareHashAndPassword([]byte(m.Password), []byte(inputPw))
 }
 
 type Service interface {
 	SignUp(request SignUpRequest) (int64, error)
-	Login(id, password string) MemberInfo
-	LoginSuccess(email, refreshToken string) error
+	Login(id, password string) (MemberInfo, error)
+	LoginSuccess(loginIP, email, refreshToken string) error
 	isDuplicatedId(username string) error
 	getUserInfo(username string) MemberInfo
 	updateUserInfo(request *UpdateRequest) int64
@@ -77,6 +82,8 @@ type Service interface {
 }
 
 type Repository interface {
-	isExistByUsername(username string) (bool, error)
+	IsExistByEmail(email string) (bool, error)
 	Save(data *MemberInfo) (int64, error)
+	FindMemberByEmail(email string) (MemberInfo, error)
+	UpdateLoginInfo(loginIp, email, refreshToken string) error
 }

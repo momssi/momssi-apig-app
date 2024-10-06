@@ -11,6 +11,8 @@ const (
 	ErrDuplicatedEmail         = 4002
 	ErrMissingToken            = 4101
 	ErrInvalidToken            = 4102
+	ErrInvalidPassword         = 4103
+	ErrNotFoundEmail           = 4401
 	ErrInternalServerError     = 5004
 	ErrFailGenerateJWTKey      = 5005
 )
@@ -21,6 +23,8 @@ var codeToMessage = map[int]error{
 	ErrDuplicatedEmail:     errors.New("duplicated email"),
 	ErrMissingToken:        errors.New("missing token"),
 	ErrInvalidToken:        errors.New("invalid token"),
+	ErrInvalidPassword:     errors.New("invalid password"),
+	ErrNotFoundEmail:       errors.New("not found email"),
 	ErrInternalServerError: errors.New("internal server error"),
 	ErrFailGenerateJWTKey:  errors.New("could not generate token"),
 }

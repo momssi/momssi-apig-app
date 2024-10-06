@@ -2,6 +2,7 @@ package member
 
 import (
 	"errors"
+	"fmt"
 	"momssi-apig-app/internal/database"
 	"strings"
 )
@@ -14,22 +15,45 @@ func NewMemberRepository(db *database.MySqlClient) Repository {
 	return &MemberRepository{db: db}
 }
 
-func (mr *MemberRepository) isExistByUsername(username string) (bool, error) {
+func (mr *MemberRepository) IsExistByEmail(email string) (bool, error) {
 	qs := query([]string{
 		"SELECT",
 		"COUNT(1)",
 		"FROM momssi.member m",
 		"WHERE 1=1",
-		"AND m.username = ?",
+		"AND m.email = ?",
 		"AND m.status = 'active'",
 	})
 
-	count, err := mr.db.ExecCountQuery(qs, username)
+	count, err := mr.db.ExecCountQuery(qs, email)
 	if err != nil {
 		return false, err
 	}
 
 	return count > 0, nil
+}
+
+func (mr *MemberRepository) FindMemberByEmail(email string) (MemberInfo, error) {
+	qs := query([]string{
+		"SELECT",
+		"*",
+		"FROM momssi.member m",
+		"WHERE 1=1",
+		"AND m.email = ?",
+		"AND m.delete_yn = 'N'",
+	})
+
+	result, err := mr.db.ExecSingleResultQuery(qs, email)
+	if err != nil {
+		return MemberInfo{}, err
+	}
+
+	memberInfo, ok := result.(MemberInfo)
+	if !ok {
+		return MemberInfo{}, fmt.Errorf("failed to convert result to MemberInfo, email : %s", email)
+	}
+
+	return memberInfo, nil
 }
 
 func (mr *MemberRepository) Save(data *MemberInfo) (int64, error) {
@@ -61,6 +85,26 @@ func (mr *MemberRepository) Save(data *MemberInfo) (int64, error) {
 	}
 
 	return id, nil
+}
+
+func (mr *MemberRepository) UpdateLoginInfo(loginIp, email, refreshToken string) error {
+	qs := query([]string{
+		"UPDATE momssi.member m",
+		"SET",
+		"last_login_at = NOW()",
+		"login_fail_count = 0",
+		"last_login_ip = ?",
+		"refresh_token = ?",
+		"WHERE 1=1",
+		"email = ?",
+		"delete_yn = 'N'",
+	})
+
+	if err := mr.db.ExecQuery(qs, loginIp, refreshToken, email); err != nil {
+		return fmt.Errorf("failed exec query, err : %w", err)
+	}
+
+	return nil
 }
 
 func query(qs []string) string {

@@ -80,6 +80,16 @@ func (mc *MemberController) Login(c *gin.Context) {
 		return
 	}
 
+	loginMember, err := mc.service.Login(req.Email, req.Password)
+	if err != nil {
+		if errors.Is(err, form.GetCustomErr(form.ErrNotFoundEmail)) {
+			mc.failResponse(c, http.StatusNotFound, form.ErrNotFoundEmail, form.GetCustomErr(form.ErrNotFoundEmail))
+		} else {
+			mc.failResponse(c, http.StatusUnauthorized, form.ErrInvalidPassword, form.GetCustomErr(form.ErrInvalidPassword))
+		}
+		return
+	}
+
 	accessToken, err := member.GenerateJWT(req.Email, time.Minute*5)
 	if err != nil {
 		mc.failResponse(c, http.StatusUnauthorized, form.ErrInvalidToken, form.GetCustomErr(form.ErrMissingToken))
@@ -92,10 +102,12 @@ func (mc *MemberController) Login(c *gin.Context) {
 		return
 	}
 
-	if err := mc.service.LoginSuccess(req.Email, refreshToken); err != nil {
+	if err := mc.service.LoginSuccess(c.ClientIP(), req.Email, refreshToken); err != nil {
 		mc.failResponse(c, http.StatusInternalServerError, form.ErrInternalServerError, form.GetCustomErr(form.ErrInternalServerError))
 		return
 	}
+
+	c.Set(req.Email, loginMember)
 
 	mc.successResponse(c, http.StatusOK, form.ApiResponse{
 		ErrorCode: 0,
