@@ -2,12 +2,16 @@ CREATE DATABASE IF NOT EXISTS momssi;
 
 CREATE TABLE IF NOT EXISTS member (
     `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
-    `username` VARCHAR(255) NOT NULL UNIQUE,
-    `password` VARCHAR(255) NOT NULL,
-    `nickname` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(256) NOT NULL UNIQUE,
+    `password` VARCHAR(256) NOT NULL,
+    `name` VARCHAR(256) NOT NULL,
     `admin_yn` CHAR(1) NOT NULL DEFAULT 'N',
     `delete_yn` CHAR(1) NOT NULL DEFAULT 'N',
+    `last_login_ip` VARCHAR(256),
+    `refresh_token` VARCHAR(256),
+    `login_fail_count` INTEGER DEFAULT 0,
     `status` VARCHAR(20) NOT NULL DEFAULT 'INACTIVE',
+    `last_login_at` DATETIME,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
