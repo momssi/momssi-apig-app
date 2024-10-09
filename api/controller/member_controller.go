@@ -64,12 +64,7 @@ func (mc *MemberController) SignUp(c *gin.Context) {
 		MemberId: memberId,
 	}
 
-	mc.successResponse(c, http.StatusOK, form.ApiResponse{
-		ErrorCode: 0,
-		Message:   "success",
-		Result:    res,
-	})
-
+	mc.successResponse(c, http.StatusOK, res)
 }
 
 func (mc *MemberController) Login(c *gin.Context) {

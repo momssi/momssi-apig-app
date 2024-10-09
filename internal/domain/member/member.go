@@ -10,7 +10,6 @@ type SignUpRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Name     string `json:"name"`
-	AdminYn  string `json:"admin_yn"`
 }
 
 type SignUpRes struct {
@@ -51,7 +50,6 @@ func NewMemberInfo(req SignUpRequest) *MemberInfo {
 		Email:     req.Email,
 		Password:  req.Password,
 		Name:      req.Name,
-		AdminYn:   req.AdminYn,
 		Status:    types.ACTIVE,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

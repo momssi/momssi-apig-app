@@ -106,6 +106,6 @@ func checkExistChatQuery() string {
 	return `
     SELECT COUNT(*)
     FROM information_schema.tables
-    WHERE table_schema = 'board' AND table_name = 'member';
+    WHERE table_schema = 'momssi' AND table_name = 'member';
     `
 }

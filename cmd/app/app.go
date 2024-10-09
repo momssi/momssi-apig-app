@@ -43,6 +43,8 @@ func NewApplication(ctx context.Context) *App {
 		db:  db,
 	}
 
+	app.setupRouter()
+
 	return app
 }
 
