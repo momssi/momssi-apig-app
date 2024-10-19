@@ -3,6 +3,7 @@ package member
 import (
 	"errors"
 	"fmt"
+	"log"
 	"momssi-apig-app/internal/database"
 	"strings"
 )
@@ -29,6 +30,8 @@ func (mr *MemberRepository) IsExistByEmail(email string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	log.Println(count)
 
 	return count > 0, nil
 }

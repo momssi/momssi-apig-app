@@ -15,7 +15,7 @@ func NewMemberService(repo Repository) Service {
 	}
 }
 
-func (us *MemberService) SignUp(req SignUpRequest) (int64, error) {
+func (us *MemberService) SignUp(req form.SignUpRequest) (int64, error) {
 
 	if err := us.isDuplicatedId(req.Email); err != nil {
 		return 0, err
@@ -69,7 +69,7 @@ func (us *MemberService) getUserInfo(username string) MemberInfo {
 	panic("implement me")
 }
 
-func (us *MemberService) updateUserInfo(request *UpdateRequest) int64 {
+func (us *MemberService) updateUserInfo(request *form.UpdateRequest) int64 {
 	//TODO implement me
 	panic("implement me")
 }

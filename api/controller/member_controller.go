@@ -44,7 +44,7 @@ func (mc *MemberController) failResponse(c *gin.Context, statusCode int, errorCo
 
 func (mc *MemberController) SignUp(c *gin.Context) {
 
-	req := member.SignUpRequest{}
+	req := form.SignUpRequest{}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		mc.failResponse(c, http.StatusBadRequest, form.ErrParsing, fmt.Errorf("sign up json parsing err : %v", err))
 		return
@@ -60,7 +60,7 @@ func (mc *MemberController) SignUp(c *gin.Context) {
 		return
 	}
 
-	res := member.SignUpRes{
+	res := form.SignUpRes{
 		MemberId: memberId,
 	}
 
@@ -69,7 +69,7 @@ func (mc *MemberController) SignUp(c *gin.Context) {
 
 func (mc *MemberController) Login(c *gin.Context) {
 
-	req := member.LoginReq{}
+	req := form.LoginReq{}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		mc.failResponse(c, http.StatusBadRequest, form.ErrParsing, fmt.Errorf("sign up json parsing err : %v", err))
 		return
@@ -107,7 +107,7 @@ func (mc *MemberController) Login(c *gin.Context) {
 	mc.successResponse(c, http.StatusOK, form.ApiResponse{
 		ErrorCode: 0,
 		Message:   "success",
-		Result: member.LoginRes{
+		Result: form.LoginRes{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		},
