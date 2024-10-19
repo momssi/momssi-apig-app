@@ -7,6 +7,7 @@ import (
 	"momssi-apig-app/api/form"
 	"momssi-apig-app/internal/domain/member"
 	"net/http"
+	"time"
 )
 
 type MemberController struct {
@@ -43,7 +44,7 @@ func (mc *MemberController) failResponse(c *gin.Context, statusCode int, errorCo
 
 func (mc *MemberController) SignUp(c *gin.Context) {
 
-	req := member.SignUpRequest{}
+	req := form.SignUpRequest{}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		mc.failResponse(c, http.StatusBadRequest, form.ErrParsing, fmt.Errorf("sign up json parsing err : %v", err))
 		return
@@ -51,22 +52,61 @@ func (mc *MemberController) SignUp(c *gin.Context) {
 
 	memberId, err := mc.service.SignUp(req)
 	if err != nil {
-		if errors.Is(err, form.GetCustomErr(form.ErrDuplicatedUsername)) {
-			mc.failResponse(c, http.StatusBadRequest, form.ErrDuplicatedUsername, fmt.Errorf("duplicated username : %w", err))
+		if errors.Is(err, form.GetCustomErr(form.ErrDuplicatedEmail)) {
+			mc.failResponse(c, http.StatusBadRequest, form.ErrDuplicatedEmail, fmt.Errorf("duplicated email : %w", err))
 		} else {
 			mc.failResponse(c, http.StatusInternalServerError, form.ErrInternalServerError, fmt.Errorf("sign up occur err : %w", err))
 		}
 		return
 	}
 
-	res := member.SignUpRes{
+	res := form.SignUpRes{
 		MemberId: memberId,
 	}
 
-	mc.successResponse(c, http.StatusOK, form.ApiResponse{
-		ErrorCode: 0,
-		Message:   "success",
-		Result:    res,
+	mc.successResponse(c, http.StatusOK, res)
+}
+
+func (mc *MemberController) Login(c *gin.Context) {
+
+	req := form.LoginReq{}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		mc.failResponse(c, http.StatusBadRequest, form.ErrParsing, fmt.Errorf("sign up json parsing err : %v", err))
+		return
+	}
+
+	loginMember, err := mc.service.Login(req.Email, req.Password)
+	if err != nil {
+		if errors.Is(err, form.GetCustomErr(form.ErrNotFoundEmail)) {
+			mc.failResponse(c, http.StatusNotFound, form.ErrNotFoundEmail, form.GetCustomErr(form.ErrNotFoundEmail))
+		} else {
+			mc.failResponse(c, http.StatusUnauthorized, form.ErrInternalServerError, form.GetCustomErr(form.ErrInternalServerError))
+		}
+		return
+	}
+
+	accessToken, err := member.GenerateJWT(req.Email, time.Minute*5)
+	if err != nil {
+		mc.failResponse(c, http.StatusUnauthorized, form.ErrInvalidToken, form.GetCustomErr(form.ErrMissingToken))
+		return
+	}
+
+	refreshToken, err := member.GenerateJWT(req.Email, time.Hour*12)
+	if err != nil {
+		mc.failResponse(c, http.StatusUnauthorized, form.ErrInvalidToken, form.GetCustomErr(form.ErrMissingToken))
+		return
+	}
+
+	if err := mc.service.LoginSuccess(c.ClientIP(), req.Email, refreshToken); err != nil {
+		mc.failResponse(c, http.StatusInternalServerError, form.ErrInternalServerError, form.GetCustomErr(form.ErrInternalServerError))
+		return
+	}
+
+	c.Set(req.Email, loginMember)
+
+	mc.successResponse(c, http.StatusOK, form.LoginRes{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	})
 
 }

@@ -8,15 +8,25 @@ import (
 const (
 	NoError                int = 0
 	ErrParsing                 = 4001
-	ErrDuplicatedUsername      = 4002
+	ErrDuplicatedEmail         = 4002
+	ErrMissingToken            = 4101
+	ErrInvalidToken            = 4102
+	ErrInvalidPassword         = 4103
+	ErrNotFoundEmail           = 4401
 	ErrInternalServerError     = 5004
+	ErrFailGenerateJWTKey      = 5005
 )
 
 var codeToMessage = map[int]error{
 	NoError:                nil,
 	ErrParsing:             errors.New("invalid request body"),
-	ErrDuplicatedUsername:  errors.New("duplicated username"),
+	ErrDuplicatedEmail:     errors.New("duplicated email"),
+	ErrMissingToken:        errors.New("missing token"),
+	ErrInvalidToken:        errors.New("invalid token"),
+	ErrInvalidPassword:     errors.New("invalid password"),
+	ErrNotFoundEmail:       errors.New("not found email"),
 	ErrInternalServerError: errors.New("internal server error"),
+	ErrFailGenerateJWTKey:  errors.New("could not generate token"),
 }
 
 func GetCustomErrMessage(code int, error string) string {

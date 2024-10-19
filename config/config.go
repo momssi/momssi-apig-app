@@ -27,7 +27,7 @@ type Mysql struct {
 	Driver   string `envconfig:"MAG_MYSQL_DRIVER" default:"mysql"`
 	User     string `envconfig:"MAG_MYSQL_USER" default:"root"`
 	Password string `envconfig:"MAG_MYSQL_PASSWORD" default:"1234"`
-	Database string `envconfig:"MAG_MYSQL_DATABASE" default:"board"`
+	Database string `envconfig:"MAG_MYSQL_DATABASE" default:"momssi"`
 }
 
 func LoadEnvConfig() (*EnvConfig, error) {

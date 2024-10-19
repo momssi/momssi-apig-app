@@ -1,7 +1,8 @@
 package member
 
 import (
-	"errors"
+	"fmt"
+	"log"
 	"momssi-apig-app/internal/database"
 	"strings"
 )
@@ -14,32 +15,53 @@ func NewMemberRepository(db *database.MySqlClient) Repository {
 	return &MemberRepository{db: db}
 }
 
-func (mr *MemberRepository) isExistByUsername(username string) (bool, error) {
+func (mr *MemberRepository) IsExistByEmail(email string) (bool, error) {
 	qs := query([]string{
 		"SELECT",
 		"COUNT(1)",
 		"FROM momssi.member m",
 		"WHERE 1=1",
-		"AND m.username = ?",
+		"AND m.email = ?",
 		"AND m.status = 'active'",
 	})
 
-	count, err := mr.db.ExecCountQuery(qs, username)
+	count, err := mr.db.ExecCountQuery(qs, email)
 	if err != nil {
 		return false, err
 	}
 
+	log.Println(count)
+
 	return count > 0, nil
 }
 
-func (mr *MemberRepository) SignUp(data *MemberInfo) (int64, error) {
+func (mr *MemberRepository) FindMemberByEmail(email string) (MemberInfo, error) {
+	qs := query([]string{
+		"SELECT",
+		"*",
+		"FROM momssi.member m",
+		"WHERE 1=1",
+		"AND m.status = 'ACTIVE'",
+		"AND m.email = ?",
+		"AND m.delete_yn = 'N'",
+	})
+
+	memberInfo := &MemberInfo{}
+	if err := mr.db.ExecSingleResultQuery(memberInfo, qs, email); err != nil {
+		return MemberInfo{}, err
+	}
+
+	return *memberInfo, nil
+}
+
+func (mr *MemberRepository) Save(data *MemberInfo) (int64, error) {
 	qs := query([]string{
 		"INSERT INTO",
-		"momssi.member(`username`, `password`, `nickname`, `admin_yn`, `status`)",
+		"momssi.member(`email`, `password`, `name`, `admin_yn`, `status`)",
 		"VALUES (?, ?, ?, ?, ?)",
 	})
 
-	if err := mr.db.ExecQuery(qs, data.Username, data.Password, data.Nickname, data.AdminYn, data.Status); err != nil {
+	if err := mr.db.ExecQuery(qs, data.Email, data.Password, data.Name, data.AdminYn, data.Status); err != nil {
 		return 0, err
 	}
 
@@ -47,20 +69,35 @@ func (mr *MemberRepository) SignUp(data *MemberInfo) (int64, error) {
 		"SELECT `id`",
 		"FROM momssi.member m",
 		"WHERE 1=1",
-		"AND m.username = ?",
+		"AND m.email = ?",
 	})
 
-	result, err := mr.db.ExecSingleResultQuery(mqs, data.Username)
-	if err != nil {
+	var memberId int64
+	if err := mr.db.ExecSingleResultQuery(memberId, mqs, data.Email); err != nil {
 		return 0, err
 	}
 
-	id, ok := result.(int64)
-	if !ok {
-		return 0, errors.New("failed convert data type")
+	return memberId, nil
+}
+
+func (mr *MemberRepository) UpdateLoginInfo(loginIp, email, refreshToken string) error {
+	qs := query([]string{
+		"UPDATE momssi.member m",
+		"SET",
+		"last_login_at = NOW(),",
+		"login_fail_count = 0,",
+		"last_login_ip = ?,",
+		"refresh_token = ?",
+		"WHERE 1=1",
+		"AND email = ?",
+		"AND delete_yn = 'N'",
+	})
+
+	if err := mr.db.ExecQuery(qs, loginIp, refreshToken, email); err != nil {
+		return fmt.Errorf("failed exec query, err : %w", err)
 	}
 
-	return id, nil
+	return nil
 }
 
 func query(qs []string) string {
