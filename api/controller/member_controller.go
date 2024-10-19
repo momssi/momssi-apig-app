@@ -80,7 +80,7 @@ func (mc *MemberController) Login(c *gin.Context) {
 		if errors.Is(err, form.GetCustomErr(form.ErrNotFoundEmail)) {
 			mc.failResponse(c, http.StatusNotFound, form.ErrNotFoundEmail, form.GetCustomErr(form.ErrNotFoundEmail))
 		} else {
-			mc.failResponse(c, http.StatusUnauthorized, form.ErrInvalidPassword, form.GetCustomErr(form.ErrInvalidPassword))
+			mc.failResponse(c, http.StatusUnauthorized, form.ErrInternalServerError, form.GetCustomErr(form.ErrInternalServerError))
 		}
 		return
 	}
@@ -104,13 +104,9 @@ func (mc *MemberController) Login(c *gin.Context) {
 
 	c.Set(req.Email, loginMember)
 
-	mc.successResponse(c, http.StatusOK, form.ApiResponse{
-		ErrorCode: 0,
-		Message:   "success",
-		Result: form.LoginRes{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-		},
+	mc.successResponse(c, http.StatusOK, form.LoginRes{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	})
 
 }

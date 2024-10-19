@@ -1,7 +1,6 @@
 package member
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"momssi-apig-app/internal/database"
@@ -42,21 +41,17 @@ func (mr *MemberRepository) FindMemberByEmail(email string) (MemberInfo, error) 
 		"*",
 		"FROM momssi.member m",
 		"WHERE 1=1",
+		"AND m.status = 'ACTIVE'",
 		"AND m.email = ?",
 		"AND m.delete_yn = 'N'",
 	})
 
-	result, err := mr.db.ExecSingleResultQuery(qs, email)
-	if err != nil {
+	memberInfo := &MemberInfo{}
+	if err := mr.db.ExecSingleResultQuery(memberInfo, qs, email); err != nil {
 		return MemberInfo{}, err
 	}
 
-	memberInfo, ok := result.(MemberInfo)
-	if !ok {
-		return MemberInfo{}, fmt.Errorf("failed to convert result to MemberInfo, email : %s", email)
-	}
-
-	return memberInfo, nil
+	return *memberInfo, nil
 }
 
 func (mr *MemberRepository) Save(data *MemberInfo) (int64, error) {
@@ -77,30 +72,25 @@ func (mr *MemberRepository) Save(data *MemberInfo) (int64, error) {
 		"AND m.email = ?",
 	})
 
-	result, err := mr.db.ExecSingleResultQuery(mqs, data.Email)
-	if err != nil {
+	var memberId int64
+	if err := mr.db.ExecSingleResultQuery(memberId, mqs, data.Email); err != nil {
 		return 0, err
 	}
 
-	id, ok := result.(int64)
-	if !ok {
-		return 0, errors.New("failed convert data type")
-	}
-
-	return id, nil
+	return memberId, nil
 }
 
 func (mr *MemberRepository) UpdateLoginInfo(loginIp, email, refreshToken string) error {
 	qs := query([]string{
 		"UPDATE momssi.member m",
 		"SET",
-		"last_login_at = NOW()",
-		"login_fail_count = 0",
-		"last_login_ip = ?",
+		"last_login_at = NOW(),",
+		"login_fail_count = 0,",
+		"last_login_ip = ?,",
 		"refresh_token = ?",
 		"WHERE 1=1",
-		"email = ?",
-		"delete_yn = 'N'",
+		"AND email = ?",
+		"AND delete_yn = 'N'",
 	})
 
 	if err := mr.db.ExecQuery(qs, loginIp, refreshToken, email); err != nil {

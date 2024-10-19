@@ -8,19 +8,19 @@ import (
 )
 
 type MemberInfo struct {
-	ID             int64     `json:"id"`
-	Email          string    `json:"email"`
-	Password       string    `json:"password"`
-	Name           string    `json:"name"`
-	AdminYn        string    `json:"admin_yn"`
-	DeleteYn       string    `json:"delete_yn"`
-	LastLoginIP    string    `json:"last_login_ip"`
-	RefreshToken   string    `json:"refresh_token"`
-	LoginFailCount int       `json:"login_fail_count"`
-	Status         string    `json:"status"`
-	LastLoginAt    time.Time `json:"last_login_at"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID             int64     `json:"id" db:"id"`                             // MySQL 칼럼: id
+	Email          string    `json:"email" db:"email"`                       // MySQL 칼럼: email
+	Password       string    `json:"password" db:"password"`                 // MySQL 칼럼: password
+	Name           string    `json:"name" db:"name"`                         // MySQL 칼럼: name
+	AdminYn        string    `json:"admin_yn" db:"admin_yn"`                 // MySQL 칼럼: admin_yn
+	DeleteYn       string    `json:"delete_yn" db:"delete_yn"`               // MySQL 칼럼: delete_yn
+	LastLoginIP    string    `json:"last_login_ip" db:"last_login_ip"`       // MySQL 칼럼: last_login_ip
+	RefreshToken   string    `json:"refresh_token" db:"refresh_token"`       // MySQL 칼럼: refresh_token
+	LoginFailCount int       `json:"login_fail_count" db:"login_fail_count"` // MySQL 칼럼: login_fail_count
+	Status         string    `json:"status" db:"status"`                     // MySQL 칼럼: status
+	LastLoginAt    time.Time `json:"last_login_at" db:"last_login_at"`       // MySQL 칼럼: last_login_at
+	CreatedAt      time.Time `json:"created_at" db:"created_at"`             // MySQL 칼럼: created_at
+	UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`             // MySQL 칼럼: updated_at
 }
 
 func NewMemberInfo(req form.SignUpRequest) *MemberInfo {
