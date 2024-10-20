@@ -1,8 +1,6 @@
 package member
 
 import (
-	"fmt"
-	"log"
 	"momssi-apig-app/internal/database"
 	"strings"
 )
@@ -25,12 +23,10 @@ func (mr *MemberRepository) IsExistByEmail(email string) (bool, error) {
 		"AND m.status = 'active'",
 	})
 
-	count, err := mr.db.ExecCountQuery(qs, email)
-	if err != nil {
+	var count int
+	if err := mr.db.ExecSingleResultQuery(&count, qs, email); err != nil {
 		return false, err
 	}
-
-	log.Println(count)
 
 	return count > 0, nil
 }
@@ -61,26 +57,15 @@ func (mr *MemberRepository) Save(data *MemberInfo) (int64, error) {
 		"VALUES (?, ?, ?, ?, ?)",
 	})
 
-	if err := mr.db.ExecQuery(qs, data.Email, data.Password, data.Name, data.AdminYn, data.Status); err != nil {
-		return 0, err
-	}
-
-	mqs := query([]string{
-		"SELECT `id`",
-		"FROM momssi.member m",
-		"WHERE 1=1",
-		"AND m.email = ?",
-	})
-
-	var memberId int64
-	if err := mr.db.ExecSingleResultQuery(memberId, mqs, data.Email); err != nil {
+	memberId, err := mr.db.ExecQuery(qs, data.Email, data.Password, data.Name, data.AdminYn, data.Status)
+	if err != nil {
 		return 0, err
 	}
 
 	return memberId, nil
 }
 
-func (mr *MemberRepository) UpdateLoginInfo(loginIp, email, refreshToken string) error {
+func (mr *MemberRepository) UpdateLoginInfo(loginIp, email, refreshToken string) (int64, error) {
 	qs := query([]string{
 		"UPDATE momssi.member m",
 		"SET",
@@ -93,11 +78,12 @@ func (mr *MemberRepository) UpdateLoginInfo(loginIp, email, refreshToken string)
 		"AND delete_yn = 'N'",
 	})
 
-	if err := mr.db.ExecQuery(qs, loginIp, refreshToken, email); err != nil {
-		return fmt.Errorf("failed exec query, err : %w", err)
+	memberId, err := mr.db.ExecQuery(qs, loginIp, refreshToken, email)
+	if err != nil {
+		return 0, err
 	}
 
-	return nil
+	return memberId, nil
 }
 
 func query(qs []string) string {
