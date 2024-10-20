@@ -75,17 +75,6 @@ func (m *MySqlClient) checkDefaultTable() error {
 	return nil
 }
 
-func (m *MySqlClient) ExecCountQuery(query string, args ...interface{}) (int, error) {
-	var count int
-
-	// 쿼리 실행 및 스캔
-	if err := m.db.QueryRow(query, args...).Scan(&count); err != nil {
-		return 0, fmt.Errorf("failed to execute count query: %w", err)
-	}
-
-	return count, nil
-}
-
 func (m *MySqlClient) ExecSingleResultQuery(src interface{}, query string, args ...interface{}) error {
 	if src == nil {
 		return errors.New("result is empty")
@@ -96,9 +85,18 @@ func (m *MySqlClient) ExecSingleResultQuery(src interface{}, query string, args 
 	return nil
 }
 
-func (m *MySqlClient) ExecQuery(query string, args ...interface{}) error {
-	_, err := m.db.Exec(query, args...)
-	return err
+func (m *MySqlClient) ExecQuery(query string, args ...interface{}) (int64, error) {
+	result, err := m.db.Exec(query, args...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to execute query: %w", err)
+	}
+
+	insertID, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get last insert ID: %w", err)
+	}
+
+	return insertID, nil
 }
 
 func checkExistChatQuery() string {

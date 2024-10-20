@@ -61,5 +61,5 @@ type Repository interface {
 	IsExistByEmail(email string) (bool, error)
 	Save(data *MemberInfo) (int64, error)
 	FindMemberByEmail(email string) (MemberInfo, error)
-	UpdateLoginInfo(loginIp, email, refreshToken string) error
+	UpdateLoginInfo(loginIp, email, refreshToken string) (int64, error)
 }

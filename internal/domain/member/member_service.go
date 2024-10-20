@@ -56,11 +56,9 @@ func (us *MemberService) Login(email, password string) (MemberInfo, error) {
 }
 
 func (us *MemberService) LoginSuccess(loginIP, email, refreshToken string) error {
-
-	if err := us.repo.UpdateLoginInfo(loginIP, email, refreshToken); err != nil {
+	if _, err := us.repo.UpdateLoginInfo(loginIP, email, refreshToken); err != nil {
 		return err
 	}
-
 	return nil
 }
 
